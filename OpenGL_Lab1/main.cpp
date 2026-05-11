@@ -135,7 +135,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Lab7 - Affine Transformations (Phong)", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Lab7 - Affine Transformations", NULL, NULL);
     if (!window) { glfwTerminate(); return -1; }
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -150,7 +150,7 @@ int main() {
 
     Shader lightingShader(vertexShaderSource, fragmentShaderSource);
 
-    // Загрузка сегментов (центры в шарнирах)
+    // Загрузка сегментов (центры уже в шарнирах)
     Model base("base.obj");
     Model arm("arm.obj");
     Model hand("hand.obj");
@@ -180,7 +180,7 @@ int main() {
         float dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // Камера
+        // Камера WASD
         float speed = 3.0f * dt;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cameraPos += speed * cameraFront;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cameraPos -= speed * cameraFront;
@@ -208,23 +208,24 @@ int main() {
         lightingShader.setVec3("viewPos", cameraPos);
         lightingShader.setVec3("light.position", lightPos);
 
-        // Основание
+        // ---------- Основание ----------
         glm::mat4 baseModel = glm::mat4(1.0f);
         baseModel = glm::rotate(baseModel, glm::radians(baseAngle), glm::vec3(0.0f, 1.0f, 0.0f));
         lightingShader.setMat4("model", baseModel);
         base.Draw();
 
-        // Рука (наследует поворот основания)
+        // Arm
         glm::mat4 armModel = baseModel;
         armModel = glm::rotate(armModel, glm::radians(armAngle), glm::vec3(1.0f, 0.0f, 0.0f));
         lightingShader.setMat4("model", armModel);
         arm.Draw();
 
-        // Кисть (наследует повороты основания и руки)
+        // Hand
         glm::mat4 handModel = armModel;
         handModel = glm::rotate(handModel, glm::radians(handAngle), glm::vec3(1.0f, 0.0f, 0.0f));
         lightingShader.setMat4("model", handModel);
         hand.Draw();
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
