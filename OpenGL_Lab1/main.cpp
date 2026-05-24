@@ -10,7 +10,7 @@
 #include "Model.h"
 
 // -------------------------------------------------------------
-// Шейдеры (вершинный и фрагментный)
+// Шейдеры
 // -------------------------------------------------------------
 const char* vertexShaderSource = R"(
 #version 330 core
@@ -64,7 +64,7 @@ void main() {
 )";
 
 // -------------------------------------------------------------
-// Класс Shader
+// Shader class
 // -------------------------------------------------------------
 class Shader {
 public:
@@ -96,7 +96,7 @@ public:
 };
 
 // -------------------------------------------------------------
-// Камера
+// Camera
 // -------------------------------------------------------------
 glm::vec3 cameraPos = glm::vec3(0.0f, 1.5f, 8.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -126,7 +126,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 // -------------------------------------------------------------
-// Основная функция
+// Main
 // -------------------------------------------------------------
 int main() {
     if (!glfwInit()) return -1;
@@ -135,7 +135,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Lab7 - Affine Transformations", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Lab7 - Crane", NULL, NULL);
     if (!window) { glfwTerminate(); return -1; }
     glfwMakeContextCurrent(window);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -150,28 +150,35 @@ int main() {
 
     Shader lightingShader(vertexShaderSource, fragmentShaderSource);
 
-    // Загрузка сегментов (центры уже в шарнирах)
+    // Загрузка сегментов
     Model base("base.obj");
     Model arm("arm.obj");
     Model hand("hand.obj");
 
-    // Материал и свет
+    // Material
     lightingShader.use();
     lightingShader.setVec3("material.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
     lightingShader.setVec3("material.diffuse", glm::vec3(0.8f, 0.4f, 0.6f));
     lightingShader.setVec3("material.specular", glm::vec3(1.0f, 1.0f, 1.0f));
     lightingShader.setFloat("material.shininess", 32.0f);
 
+    // Light
     glm::vec3 lightPos = glm::vec3(2.0f, 4.0f, 3.0f);
     lightingShader.setVec3("light.position", lightPos);
     lightingShader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
     lightingShader.setVec3("light.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
     lightingShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-    // Углы поворота
+    // ---------------------------------------------------------
+    // Углы
+    // ---------------------------------------------------------
     float baseAngle = 0.0f;
     float armAngle = 0.0f;
     float handAngle = 0.0f;
+
+    float newBaseAngle = 0.0f;
+    float newArmAngle = 0.0f;
+    float newHandAngle = 0.0f;
 
     float lastFrame = 0.0f;
 
@@ -180,7 +187,7 @@ int main() {
         float dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // Камера WASD
+        // Camera
         float speed = 3.0f * dt;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cameraPos += speed * cameraFront;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cameraPos -= speed * cameraFront;
@@ -188,14 +195,56 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
 
-        // Управление сегментами
         float rotSpeed = 50.0f * dt;
-        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) baseAngle += rotSpeed;
-        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) baseAngle -= rotSpeed;
-        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) armAngle += rotSpeed;
-        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) armAngle -= rotSpeed;
-        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) handAngle += rotSpeed;
-        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) handAngle -= rotSpeed;
+
+        // -------------------------------------------------
+        // Управление
+        // -------------------------------------------------
+        // Base (1/2)
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+            newBaseAngle = baseAngle + rotSpeed;
+            baseAngle = newBaseAngle;
+        }
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+            newBaseAngle = baseAngle - rotSpeed;
+            baseAngle = newBaseAngle;
+        }
+
+        // Arm (3/4) — ограничение 
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+            newArmAngle = armAngle + rotSpeed;
+            if (newArmAngle > 45.0f) newArmAngle = 45.0f;
+            if (newArmAngle < -45.0f) newArmAngle = -45.0f;
+            armAngle = newArmAngle;
+        }
+        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+            newArmAngle = armAngle - rotSpeed;
+            if (newArmAngle > 22.0f) newArmAngle = 22.0f;
+            if (newArmAngle < -22.0f) newArmAngle = -22.0f;
+            armAngle = newArmAngle;
+        }
+
+        // Hand (5/6) — вращение вверх-вниз (ось X), ограничение -45…+45
+        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+            newHandAngle = handAngle + rotSpeed;
+            if (newHandAngle > 45.0f) newHandAngle = 45.0f;
+            if (newHandAngle < -45.0f) newHandAngle = -45.0f;
+            handAngle = newHandAngle;
+        }
+        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+            newHandAngle = handAngle - rotSpeed;
+            if (newHandAngle > 22.0f) newHandAngle = 22.0f;
+            if (newHandAngle < -22.0f) newHandAngle = -22.0f;
+            handAngle = newHandAngle;
+        }
+
+        
+
+
+
+
+
+
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -208,7 +257,10 @@ int main() {
         lightingShader.setVec3("viewPos", cameraPos);
         lightingShader.setVec3("light.position", lightPos);
 
-        // ---------- Основание ----------
+        // -------------------------------------------------
+        // Отрисовка
+        // -------------------------------------------------
+        // Base
         glm::mat4 baseModel = glm::mat4(1.0f);
         baseModel = glm::rotate(baseModel, glm::radians(baseAngle), glm::vec3(0.0f, 1.0f, 0.0f));
         lightingShader.setMat4("model", baseModel);
@@ -220,18 +272,24 @@ int main() {
         lightingShader.setMat4("model", armModel);
         arm.Draw();
 
-        // Hand
+        // Разница центров Hand и Arm (из Blender)
+        glm::vec3 handOffset = glm::vec3(-0.64146f, 0.1197f, -5.5918f);
+
+        // Hand — привязан к Arm
         glm::mat4 handModel = armModel;
+        handModel = glm::translate(handModel, handOffset);
         handModel = glm::rotate(handModel, glm::radians(handAngle), glm::vec3(1.0f, 0.0f, 0.0f));
+        handModel = glm::translate(handModel, -handOffset);
         lightingShader.setMat4("model", handModel);
         hand.Draw();
+
+
+    
 
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-
 
     glfwTerminate();
     return 0;
