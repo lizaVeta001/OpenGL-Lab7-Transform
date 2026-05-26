@@ -249,22 +249,21 @@ int main() {
         lightingShader.setMat4("projection", projection);
         lightingShader.setVec3("viewPos", cameraPos);
         lightingShader.setVec3("light.position", lightPos);
-
-        // -------------------------------------------------
-        // Base
-        // -------------------------------------------------
+        // ---------------------------------------------------------
+// Base (вращается вокруг своей оси Y)
+// ---------------------------------------------------------
         glm::mat4 baseModel = glm::mat4(1.0f);
         baseModel = glm::rotate(baseModel, glm::radians(baseAngle), glm::vec3(0.0f, 1.0f, 0.0f));
         lightingShader.setMat4("model", baseModel);
         base.Draw();
 
-        // -------------------------------------------------
-        // Arm (привязана к Base)
-        // -------------------------------------------------
+        // Arm — принудительная привязка к Base (правый конец фиксирован)
+        glm::vec3 armPivot = glm::vec3(-0.10784f, 2.71f, -2.5f);
+
         glm::mat4 armModel = baseModel;
-        armModel = glm::translate(armModel, armAttachOffset);
+        armModel = glm::translate(armModel, armPivot);
         armModel = glm::rotate(armModel, glm::radians(armAngle), glm::vec3(1.0f, 0.0f, 0.0f));
-        armModel = glm::translate(armModel, -armAttachOffset);
+        armModel = glm::translate(armModel, -armPivot);
         lightingShader.setMat4("model", armModel);
         arm.Draw();
 
