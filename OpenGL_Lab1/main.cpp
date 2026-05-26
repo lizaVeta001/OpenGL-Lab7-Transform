@@ -269,7 +269,7 @@ int main() {
         arm.Draw();
 
         // Уточнённая разница центров Hand и Arm (подбираем визуально)
-        glm::vec3 handOffset = glm::vec3(-0.150f, 2.14f, -6.987f); // ← меняй здесь
+        glm::vec3 handOffset = glm::vec3(0.88f, 2.5699f, -6.987f); // ← меняй здесь
 
         glm::mat4 handModel = armModel;
         handModel = glm::translate(handModel, handOffset);
