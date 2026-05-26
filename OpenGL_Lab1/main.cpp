@@ -173,7 +173,7 @@ int main() {
     // Шарниры (локальные смещения)
     // ---------------------------------------------------------
     glm::vec3 armAttachOffset = glm::vec3(0.0f, 2.5f, 0.0f);  // Arm → Base
-    glm::vec3 handAttachOffset = glm::vec3(0.0f, 1.2f, 0.0f); // Hand → Arm
+    glm::vec3 handAttachOffset = glm::vec3(0.0f, 0.0f, 0.0f); // Hand → Arm
 
     // ---------------------------------------------------------
     // Углы
